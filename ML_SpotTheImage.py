@@ -47,17 +47,12 @@ def flatten_image(img):
     return img_wide[0]
     
 def make_plot(pd):
-    df = pd.DataFrame({query: X[:, 0], query1: X[:, 1], "label":np.where(y==1, query, query1)})
+    df = pd.DataFrame({"x": X[:, 0], "y": X[:, 1], "label":np.where(y==1, query, query1)})
     colors = ["red", "yellow"]
     for label, color in zip(df['label'].unique(), colors):
-        #mask = df['label']==label
-        pl.scatter(df[query], df[query1], c=color, label=label)
-        #    pl.scatter(df[query], df[query1], c=color)
-    #df = pd.DataFrame({query: X[:, 0], query1: X[:, 1]})
-    #colors = itertools.cycle(["red", "yellow"])
-    #pl.scatter(df[query], df[query1], color=next(colors))
-    pl.legend()
-    print 'Plot displayed, waiting for it to be closed.'    
+        mask = df['label']==label
+        pl.scatter(df[mask]['x'], df[mask]['y'], c=color, label=label)
+    pl.legend()    
     
     
     
@@ -148,11 +143,9 @@ knn = KNeighborsClassifier(algorithm='auto', leaf_size=30, metric='minkowski',
 print "Running your machine learning model on the test set."
 knn.fit(train_x, train_y)
 result = knn.predict(test_x)
+rawAccuracy = accuracy_score(test_y, result) 
+percentageAccuracy = round(rawAccuracy*100, 2)
+print "Your machine model was " + str(percentageAccuracy) + "% accurate!"
 
-print "Your machine model was "
-print  accuracy_score(test_y, result) 
-print "% accurate!"
 
 
-#pd.crosstab(test_y, knn.predict(test_x), rownames=["Actual"], colnames=["Predicted"])
-#pd.pandas.ExcelWriter.save
