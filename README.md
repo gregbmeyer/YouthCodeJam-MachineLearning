@@ -14,8 +14,6 @@ then run "pip install -U cobe"  this is also one that has several dependencies b
 To run the program make sure you are in the folder with the downloaded python program ML_SpotTheImage.py and in the command line type
 "ML_SpotTheImage.py"
 
-Known issues:  scatterplot does not put up the red data dots for the other images
-               need to add control for how many images to pull down from BING image, current is default of 28
+Known issues:  need to add control for how many images to pull down from BING image, current is default of 28
                need to add visualization of the test set images and which ones were properly identified and which ones were not
-               when run from commandline the python script throws an unhandled error at its end and crashes instead of ending gracefully       without an error message
                need to add a deletion of images to rerun step after the program finishes the analysis and allow immediate rerun instead        of ending
