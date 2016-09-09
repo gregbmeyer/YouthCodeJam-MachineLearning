@@ -12,6 +12,8 @@ from PIL import Image
 from sklearn.decomposition import RandomizedPCA
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import accuracy_score
+from IPython.display import HTML
+import fnmatch
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as pl
@@ -19,6 +21,7 @@ import requests
 import re
 import urllib2
 import os
+import time
 
 
 def get_soup(url):
@@ -61,13 +64,17 @@ image_type = str(raw_input("What is your image first subject query?  (Examples: 
 query = image_type
 image_type1 = str(raw_input("What is your image second subject query?  (Examples: turtle, fish, ball) : "))
 query1 = image_type1
-# add input control for Black and White or Color
-BWselection = str(raw_input("Use black and white images or color? enter 'BW' or 'Color' : "))
-if BWselection == "BW":  
-    url = "http://www.bing.com/images/search?q=" + query  + "&qft=+filterui:color2-bw+filterui:imagesize-large&FORM=R5IR3"
-else:
-    url = "http://www.bing.com/images/search?q=" + query + "&qft=+filterui:imagesize-large&FORM=R5IR3"
 
+bwSelection="x"
+# add input control for Black and White or Color
+while bwSelection not in {'BW','Color'}:
+    bwSelection = str(raw_input("Use black and white images or color? enter 'BW' or 'Color' : "))
+    
+if bwSelection == "BW":  
+    url = "http://www.bing.com/images/search?q=" + query  + "&qft=+filterui:color2-bw+filterui:imagesize-large&FORM=R5IR7"
+else:
+    url = "http://www.bing.com/images/search?q=" + query + "&qft=+filterui:imagesize-large&FORM=R5IR7"
+print "URL " + url
 #print "Starting to pull training images for " + query
 soup = get_soup(url)
 images = [a['src'] for a in soup.find_all("img", {"src": re.compile("mm.bing.net")})]
@@ -82,12 +89,13 @@ for img in images:
 print "Finished pulling training images for " + query
 
 
-if BWselection == "BW":
-    url1 = "http://www.bing.com/images/search?q=" + query1  + "&qft=+filterui:color2-bw+filterui:imagesize-large&FORM=R5IR3"
+if bwSelection == "BW":
+    url1 = "http://www.bing.com/images/search?q=" + query1  + "&qft=+filterui:color2-bw+filterui:imagesize-large&FORM=R5IR7"
 else:
-    url1 = "http://www.bing.com/images/search?q=" + query1 + "&qft=+filterui:imagesize-large&FORM=R5IR3"
+    url1 = "http://www.bing.com/images/search?q=" + query1 + "&qft=+filterui:imagesize-large&FORM=R5IR7"
 #print "Starting to pull training images for " + query1
 soup1 = get_soup(url1)
+print "URL " + url1
 images1 = [a['src'] for a in soup1.find_all("img", {"src": re.compile("mm.bing.net")})]
 
 for img1 in images1:
@@ -97,17 +105,21 @@ for img1 in images1:
     f.write(raw_img1)
     f.close()
 
+
 print "Finished pulling training images for " + query1
-#print "Images to train your machine are loaded in the /images folder from the directory from where you are running ML_SpotTheImage.py"
-    
-StandardImageDefinition = int(raw_input("How many pixels do you want to sample across images? Choose a number between 50 and 140. "))
+time.sleep(3)
+
+standardImageDefinition = 0 
+while standardImageDefinition <50 or standardImageDefinition > 140:   
+    standardImageDefinition = int(raw_input("How many pixels do you want to sample across images? Choose a number between 50 and 140. "))
 
 #setup a standard image size; this will distort some images but will get everything into the same shape
-STANDARD_SIZE = (StandardImageDefinition, StandardImageDefinition)
+STANDARD_SIZE = (standardImageDefinition, standardImageDefinition)
 
 img_dir = "images/"
 images = [img_dir+ f for f in os.listdir(img_dir)]
 labels = [query if query in f.split('/')[-1] else query1 for f in images]
+
 
 data = []
 print "Flattening the images and converting them to numerical data"
@@ -117,22 +129,29 @@ for image in images:
     data.append(img)
     
 data = np.array(data)
-
+print data
 is_train = np.random.uniform(0, 1, len(data)) <= 0.7
 y = np.where(np.array(labels)==query, 1, 0)
 
 train_x, train_y = data[is_train], y[is_train]
 test_x, test_y = data[is_train==False], y[is_train==False]
 
-#add input to specify number of components to determine
-UniqueImageComponents = int(raw_input("How many unique features are needed to distinguish between your image types? Choose a number between 2 and 6. "))
+print "You have " + str(len(train_x)) + " images to train your machine"
+print "You have " + str(len(test_x)) + " images to test your machine's learning"
 
-pca = RandomizedPCA(n_components=UniqueImageComponents)
+uniqueImageComponents = 0
+#add input to specify number of components to determine
+while uniqueImageComponents < 2 or uniqueImageComponents >6:
+    uniqueImageComponents = int(raw_input("How many unique features are needed to distinguish between your image types? Choose a number between 2 and 6. "))
+
+pca = RandomizedPCA(n_components=uniqueImageComponents)
 X = pca.fit_transform(data)
 
 
 make_plot(pd)
 pl.show()
+
+time.sleep(5)
 
 train_x = pca.fit_transform(train_x)
 test_x = pca.transform(test_x)
@@ -146,6 +165,18 @@ result = knn.predict(test_x)
 rawAccuracy = accuracy_score(test_y, result) 
 percentageAccuracy = round(rawAccuracy*100, 2)
 print "Your machine model was " + str(percentageAccuracy) + "% accurate!"
-
-
+print test_y
+print result
+os.chdir("images")        
+dir = os.getcwd()
+print "directory is " + str(dir)
+files = os.listdir(dir)
+#print files
+for file in files:
+    if file.endswith(".jpeg"):
+        #print "Removing " + str(file)
+        os.remove(os.path.join(dir,file))
+        
+        
+pl.close()
 
