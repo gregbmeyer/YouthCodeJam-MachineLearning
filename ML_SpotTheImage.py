@@ -34,6 +34,7 @@ def img_to_matrix(filename, verbose=False):
     img = Image.open(filename)
     if verbose==True:
         print("changing size from %s to %s" % (str(img.size), str(STANDARD_SIZE)))
+    
     img = img.resize(STANDARD_SIZE)
     img = list(img.getdata())
     img = map(list, img)
