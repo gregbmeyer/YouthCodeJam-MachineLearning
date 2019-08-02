@@ -74,7 +74,7 @@ if bwSelection == "BW":
     url = "http://www.bing.com/images/search?q=" + query  + "&qft=+filterui:color2-bw+filterui:imagesize-large&FORM=R5IR7"
 else:
     url = "http://www.bing.com/images/search?q=" + query + "&qft=+filterui:imagesize-large&FORM=R5IR7"
-print "URL " + url
+print("URL " + url)
 #print "Starting to pull training images for " + query
 soup = get_soup(url)
 images = [a['src'] for a in soup.find_all("img", {"src": re.compile("mm.bing.net")})]
@@ -86,7 +86,7 @@ for img in images:
     f.write(raw_img)
     f.close()
     
-print "Finished pulling training images for " + query
+print("Finished pulling training images for " + query)
 
 
 if bwSelection == "BW":
@@ -95,7 +95,7 @@ else:
     url1 = "http://www.bing.com/images/search?q=" + query1 + "&qft=+filterui:imagesize-large&FORM=R5IR7"
 #print "Starting to pull training images for " + query1
 soup1 = get_soup(url1)
-print "URL " + url1
+print("URL " + url1)
 images1 = [a['src'] for a in soup1.find_all("img", {"src": re.compile("mm.bing.net")})]
 
 for img1 in images1:
@@ -106,7 +106,7 @@ for img1 in images1:
     f.close()
 
 
-print "Finished pulling training images for " + query1
+print("Finished pulling training images for " + query1)
 time.sleep(3)
 
 standardImageDefinition = 0 
@@ -122,22 +122,22 @@ labels = [query if query in f.split('/')[-1] else query1 for f in images]
 
 
 data = []
-print "Flattening the images and converting them to numerical data"
+print("Flattening the images and converting them to numerical data")
 for image in images:
     img = img_to_matrix(image)
     img = flatten_image(img)
     data.append(img)
     
 data = np.array(data)
-print data
+print(data)
 is_train = np.random.uniform(0, 1, len(data)) <= 0.7
 y = np.where(np.array(labels)==query, 1, 0)
 
 train_x, train_y = data[is_train], y[is_train]
 test_x, test_y = data[is_train==False], y[is_train==False]
 
-print "You have " + str(len(train_x)) + " images to train your machine"
-print "You have " + str(len(test_x)) + " images to test your machine's learning"
+print("You have " + str(len(train_x)) + " images to train your machine")
+print("You have " + str(len(test_x)) + " images to test your machine's learning")
 
 uniqueImageComponents = 0
 #add input to specify number of components to determine
@@ -155,21 +155,21 @@ time.sleep(5)
 
 train_x = pca.fit_transform(train_x)
 test_x = pca.transform(test_x)
-print "Training and Test sets are created."
+print("Training and Test sets are created.")
 knn = KNeighborsClassifier(algorithm='auto', leaf_size=30, metric='minkowski',
            metric_params=None, n_jobs=1, n_neighbors=5, p=2,
            weights='uniform')
-print "Running your machine learning model on the test set."
+print("Running your machine learning model on the test set.")
 knn.fit(train_x, train_y)
 result = knn.predict(test_x)
 rawAccuracy = accuracy_score(test_y, result) 
 percentageAccuracy = round(rawAccuracy*100, 2)
-print "Your machine model was " + str(percentageAccuracy) + "% accurate!"
-print test_y
-print result
+print("Your machine model was " + str(percentageAccuracy) + "% accurate!")
+print(test_y)
+print(result)
 os.chdir("images")        
 dir = os.getcwd()
-print "directory is " + str(dir)
+print("directory is " + str(dir))
 files = os.listdir(dir)
 #print files
 for file in files:
